@@ -75,9 +75,6 @@ def improper_payment(
             B: Random variates of a uniform distribution for the percent of the payment that is improper.
             Z: Random variates of a binomial distribution that indicate if a payment is improper.
             Y: Random variates for the improper payment amount. Y = X*B*Z. 
-    
-    Example:
-        >>>
     """
     b = b if type(b) is tuple else (b, b)
     lim = upper if upper else payamt
