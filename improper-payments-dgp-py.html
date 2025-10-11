@@ -3192,7 +3192,7 @@ window.Quarto = {
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">October 11, 2025 07:41:05</p>
+      <p class="date">October 11, 2025 07:43:25</p>
     </div>
   </div>
   
@@ -3277,12 +3277,12 @@ pip freeze > requirements.txt
 <span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>d <span class="op">=</span> improper_payment(payamt <span class="op">=</span> <span class="dv">1000000000</span>, N <span class="op">=</span> <span class="dv">1000000</span>, b <span class="op">=</span> (<span class="fl">0.4</span>, <span class="fl">0.6</span>), lower <span class="op">=</span> <span class="dv">0</span>, upper <span class="op">=</span> <span class="va">None</span>, p_improper <span class="op">=</span> <span class="fl">0.1</span>)</span>
 <span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f&quot;The total payment amount is </span><span class="sc">{</span><span class="bu">round</span>(<span class="bu">sum</span>(d[<span class="st">&quot;X&quot;</span>]), <span class="dv">2</span>)<span class="sc">:,}</span><span class="ss">.</span><span class="ch">\n</span><span class="ss">The probability that each payment is improper is </span><span class="sc">{</span><span class="bu">round</span>(np.mean(d[<span class="st">&quot;Z&quot;</span>])<span class="op">*</span><span class="dv">100</span>, <span class="dv">2</span>)<span class="sc">}</span><span class="ss">.</span><span class="ch">\n</span><span class="ss">The average percentage of each payment that is improper is </span><span class="sc">{</span><span class="bu">round</span>(np.mean(d[<span class="st">&quot;B&quot;</span>])<span class="op">*</span><span class="dv">100</span>, <span class="dv">2</span>)<span class="sc">}</span><span class="ss">%.</span><span class="ch">\n</span><span class="ss">The total improper payment amount is </span><span class="sc">{</span><span class="bu">round</span>(<span class="bu">sum</span>(d[<span class="st">&quot;Y&quot;</span>]), <span class="dv">2</span>)<span class="sc">:,}</span><span class="ss">.&quot;</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f&quot;The total payment amount is $</span><span class="sc">{</span><span class="bu">round</span>(<span class="bu">sum</span>(d[<span class="st">&quot;X&quot;</span>]), <span class="dv">2</span>)<span class="sc">:,}</span><span class="ss">.</span><span class="ch">\n</span><span class="ss">The probability that each payment is improper is </span><span class="sc">{</span><span class="bu">round</span>(np.mean(d[<span class="st">&quot;Z&quot;</span>])<span class="op">*</span><span class="dv">100</span>, <span class="dv">2</span>)<span class="sc">}</span><span class="ss">.</span><span class="ch">\n</span><span class="ss">The average percentage of each payment that is improper is </span><span class="sc">{</span><span class="bu">round</span>(np.mean(d[<span class="st">&quot;B&quot;</span>])<span class="op">*</span><span class="dv">100</span>, <span class="dv">2</span>)<span class="sc">}</span><span class="ss">%.</span><span class="ch">\n</span><span class="ss">The total improper payment amount is $</span><span class="sc">{</span><span class="bu">round</span>(<span class="bu">sum</span>(d[<span class="st">&quot;Y&quot;</span>]), <span class="dv">2</span>)<span class="sc">:,}</span><span class="ss">.&quot;</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>The total payment amount is 1,000,924,443.61.
+<pre><code>The total payment amount is $1,000,924,443.61.
 The probability that each payment is improper is 9.96.
 The average percentage of each payment that is improper is 50.0%.
-The total improper payment amount is 50,079,671.34.</code></pre>
+The total improper payment amount is $50,079,671.34.</code></pre>
 </div>
 <div class="sourceCode cell-code" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> pfun():</span>
 <span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>    pdata <span class="op">=</span> d[<span class="st">&quot;Y&quot;</span>][d[<span class="st">&quot;Y&quot;</span>] <span class="op">&gt;</span> <span class="dv">0</span>]</span>
@@ -3896,7 +3896,7 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
 <span id="cb5-103"><a href="#cb5-103" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb5-104"><a href="#cb5-104" aria-hidden="true" tabindex="-1"></a><span class="in">d = improper_payment(payamt = 1000000000, N = 1000000, b = (0.4, 0.6), lower = 0, upper = None, p_improper = 0.1)</span></span>
 <span id="cb5-105"><a href="#cb5-105" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb5-106"><a href="#cb5-106" aria-hidden="true" tabindex="-1"></a><span class="in">print(f&quot;The total payment amount is {round(sum(d[&quot;X&quot;]), 2):,}.\nThe probability that each payment is improper is {round(np.mean(d[&quot;Z&quot;])*100, 2)}.\nThe average percentage of each payment that is improper is {round(np.mean(d[&quot;B&quot;])*100, 2)}%.\nThe total improper payment amount is {round(sum(d[&quot;Y&quot;]), 2):,}.&quot;)</span></span>
+<span id="cb5-106"><a href="#cb5-106" aria-hidden="true" tabindex="-1"></a><span class="in">print(f&quot;The total payment amount is ${round(sum(d[&quot;X&quot;]), 2):,}.\nThe probability that each payment is improper is {round(np.mean(d[&quot;Z&quot;])*100, 2)}.\nThe average percentage of each payment that is improper is {round(np.mean(d[&quot;B&quot;])*100, 2)}%.\nThe total improper payment amount is ${round(sum(d[&quot;Y&quot;]), 2):,}.&quot;)</span></span>
 <span id="cb5-107"><a href="#cb5-107" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb5-108"><a href="#cb5-108" aria-hidden="true" tabindex="-1"></a><span class="in">def pfun():</span></span>
 <span id="cb5-109"><a href="#cb5-109" aria-hidden="true" tabindex="-1"></a><span class="in">    pdata = d[&quot;Y&quot;][d[&quot;Y&quot;] &gt; 0]</span></span>

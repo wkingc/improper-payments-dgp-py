@@ -103,7 +103,7 @@ np.random.seed(123)
 
 d = improper_payment(payamt = 1000000000, N = 1000000, b = (0.4, 0.6), lower = 0, upper = None, p_improper = 0.1)
 
-print(f"The total payment amount is {round(sum(d["X"]), 2):,}.\nThe probability that each payment is improper is {round(np.mean(d["Z"])*100, 2)}.\nThe average percentage of each payment that is improper is {round(np.mean(d["B"])*100, 2)}%.\nThe total improper payment amount is {round(sum(d["Y"]), 2):,}.")
+print(f"The total payment amount is ${round(sum(d["X"]), 2):,}.\nThe probability that each payment is improper is {round(np.mean(d["Z"])*100, 2)}.\nThe average percentage of each payment that is improper is {round(np.mean(d["B"])*100, 2)}%.\nThe total improper payment amount is ${round(sum(d["Y"]), 2):,}.")
 
 def pfun():
     pdata = d["Y"][d["Y"] > 0]
