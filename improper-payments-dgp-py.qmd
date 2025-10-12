@@ -1,6 +1,6 @@
 ---
 title: "A Data Generating Process for Improper Payments"
-author: "Wade K. Copeland"
+author: "Wade K. Copeland and Jonathan Gladish"
 date: last-modified
 date-format: "MMMM DD, YYYY hh:mm:ss"
 bibliography: references.bib
