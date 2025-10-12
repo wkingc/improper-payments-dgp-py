@@ -124,7 +124,7 @@ def pfun():
 pfun()
 ```
 
-# Session Infomation
+# Session Information
 
 ```{python session_info}
 #| echo: false
