@@ -123,3 +123,11 @@ def pfun():
 
 pfun()
 ```
+
+# Session Infomation
+
+```{python session_info}
+#| echo: false
+import session_info
+session_info.show()
+```
