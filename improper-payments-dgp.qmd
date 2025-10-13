@@ -2,7 +2,7 @@
 title: "A Data Generating Process for Improper Payments"
 author: "Wade K. Copeland and Jonathan Gladish"
 date: last-modified
-date-format: "MMMM DD, YYYY hh:mm:ss"
+date-format: "MMMM DD, YYYY"
 bibliography: references.bib
 format:
     html: 
@@ -118,7 +118,7 @@ def pfun():
     ax.tick_params(left = False)
     for ax, spine in ax.spines.items():
         spine.set_visible(False)
-    plt.savefig("improper-payments-dpg-py.svg", format='svg', dpi=300) 
+    plt.savefig("improper-payments-dpg.svg", format='svg', dpi=300) 
     plt.show()
 
 pfun()
