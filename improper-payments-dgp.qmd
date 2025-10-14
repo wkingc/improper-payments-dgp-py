@@ -127,6 +127,8 @@ pfun()
 
 # Python Session Information
 
+All of the files needed to reproduce these results can be downloaded from the Git repository <https://github.com/wkingc/improper-payments-dgp>.
+
 ```{python session_info}
 #| echo: false
 import session_info
