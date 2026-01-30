@@ -1,6 +1,6 @@
 ---
 title: "A Data Generating Process for Improper Payments"
-author: "Wade K. Copeland and Jonathan Gladish"
+author: "Wade K. Copeland"
 date: last-modified
 date-format: "MMMM DD, YYYY"
 output-file: index.html
@@ -14,7 +14,6 @@ format:
         toc: true
         toc-location: left
         toc-depth: 4
-        toc-expand: 4
         html-math-method: katex
         code-tools:
             source: true
@@ -28,95 +27,224 @@ knitr:
         root.dir: "./"
 ---
 
-# Proposed Data Generating Process
+# Statistical Methods
 
-The population data for payments is generated under the assumption that the data generating process for each payment is exponential $X_i \sim Exp(\lambda)$ where $\lambda = 1/E[X]$ and $E[X] = \sum_x xf(x)$ with $f(x) = Pr(X = x)$ [@bain1992introduction, pp. 115-116].  To generate each improper payment let $Y_i = B_iX_iZ_i$ where $B_i \sim Unif(a \in [0, 1], b \ge a \in [0, 1])$ is the percentage of each payment that is improper, and $Z_{i} \sim Bin(1,p)$, where $1$ is the number of trials and $p$ is the probability of observing an improper payment [@bain1992introduction, pp. 92-95, 109-110].  The following Python code implements this data generating process for improper payments.
+The proposed data generating process for improper payments involves a mixture distribution.
 
-```{python ipdgp}
-import pandas as pd
-import matplotlib.pyplot as plt
-from math import ceil
-from scipy.stats import uniform, binom, truncexpon
-import numpy as np
+Payments are generated using a truncated gamma distribution $X_i \sim \Gamma_T(\alpha, \theta)$ (see [Appendix @sec-truncated-gamma] for details).  Practically speaking, unlike the gamma distribution, the first and second moments of the truncated gamma distribution don't have closed-form solutions, so the values of $\alpha$ and $\theta$ are solved for numerically for a given $E[X]$ and $CV[X] = \frac{SD[X]}{E[X]}$
 
-def improper_payment(
-    payamt: int = 1000000000, 
-    N: int = 1000000, 
-    b: tuple = (0.4, 0.6), 
-    lower: int = 0, 
-    upper: int = None, 
-    p_improper: float = 0.1):
-    """This function generates the population data for improper payments.
-    
-    Parameters:
-        - payment (int): The total payment amount.
-        - N (int): The number of payments, which implies the average payment amount is payment/N.
-        - b (tuple): Bounds of the uniform distribution (0 <= b <= 1) for the percentage of each payment that is improper.
-        - lower (int): Lower bound on the payment amount.
-        - upper (int): Upper bound on the payment amount.  If 'None' it's set as payment.
-        - p_improper (float): Probability that a given payment is improper.
-        
-    Returns:
-        - A Pandas DataFrame with the following:
-            X: Random variates of an exponential distribution for the payment amount.
-            B: Random variates of a uniform distribution for the percent of the payment that is improper.
-            Z: Random variates of a binomial distribution that indicate if a payment is improper.
-            Y: Random variates for the improper payment amount. Y = X*B*Z. 
-    """
-    b = b if type(b) is tuple else (b, b)
-    lim = upper if upper else payamt
-    exp_lambda = 1/(payamt/N)
-    
-    B = uniform.rvs(size = N, loc = b[0], scale = b[1] - b[0])
-    X = truncexpon.rvs(size = N, scale = 1/exp_lambda, b = (lim - lower)*(1/(1/exp_lambda)), loc = lower)
-    Z = binom.rvs(size = N, n = 1, p = p_improper)
-    Y = X*B*Z
-    
-    pop_data = pd.DataFrame({
-        "X": X,
-        "B": B,
-        "Z": Z,
-        "Y": Y})
-    
-    return pop_data
-```
+Improper payments are stright forward.  Let $Y_i = B_iX_iZ_i$ where $B_i \sim Unif(a \in [0, 1], b \ge a \in [0, 1])$ is the percentage of each payment that is improper, and $Z_{i} \sim Bin(1,p)$, where $1$ is the number of trials and $p$ is the probability of observing an improper payment [@bain1992introduction, pp. 92-95, 109-110].
 
 # Example
 
-The following example is for a population with &#36;1,000,000,000 in payments from 1,000,000 individual payments.  This means the average payment amount is &#36;1,000,000,000/1,000,000 = &#36;1,000.  The probability that each payment is improper is 10&#37; and the percentage of each payment that is improper is between 40&#37; and 60&#37; of the payment amount.
+Suppose we want to generate 100,000 payments with mean payment amount of $100 and a coefficient of variation of 0.5.  The percentage of each payment that is improper is between 40&#37; and 60&#37; of the payment amount, and the probability that each payment is improper is 10&#37;.
 
-```{python ipdgp_example}
-np.random.seed(123)
+We can accomplish this in Python using the **`improper_payments_dgp`** module (source code available in [Appendix @sec-py-source-code]).  From this module, the function **`improper_payment_rvs`** generates random variates from a truncated gamma distribution. It accepts the following arguments:
 
-d = improper_payment(payamt = 1000000000, N = 1000000, b = (0.4, 0.6), lower = 0, upper = None, p_improper = 0.1)
+- **`mean_target`**: Target mean of the truncated gamma distribution.
+- **`cv_target`**: Target coefficient of variation of the truncated gamma distribution.
+- **`A`**: Lower bound of the truncated gamma distribution.
+- **`B`**: Upper bound of the truncated gamma distribution.
+- **`b`**: Tuple indicating the lower and upper bounds of the uniform distribution for the percentage of each payment that is improper.  
+  - If a single value is provided, it is used for both the lower and upper bounds.
+- **`p_improper`**: Probability that a payment is improper.
+- **`size`**: Number of random variates to generate.
+- **`random_state`**: Seed for reproducibility.  
+  - Set to an integer for consistent results.
+  - Set to `None` if reproducibility is not required.
 
-print(f"The total payment amount is ${round(sum(d["X"]), 2):,}.\nThe probability that each payment is improper is {round(np.mean(d["Z"])*100, 2)}.\nThe average percentage of each payment that is improper is {round(np.mean(d["B"])*100, 2)}%.\nThe total improper payment amount is ${round(sum(d["Y"]), 2):,}.")
+```{python}
+#| label: ip-rvs
+#| eval: true
+#| echo: true
+#| output: true
+#| warning: false
+#| message: false
 
-def pfun():
-    pdata = d["Y"][d["Y"] > 0]
-    fig, ax = plt.subplots(figsize = (8, 4))
-    pdata.plot(kind = "hist", density = True, bins = 50)
-    pdata.plot(kind = "kde")
-    ax.set_xlim(0, max(pdata))
-    ax.set_xlabel("Improper Payment Amount ($)")
-    ax.set_yticks([])
-    ax.set_ylabel("Frequency")
-    ax.set_title("Distribution of Improper Payments")
-    ax.tick_params(left = False)
-    for ax, spine in ax.spines.items():
-        spine.set_visible(False)
-    plt.savefig("improper-payments-dpg.svg", format='svg', dpi=300) 
-    plt.show()
+from improper_payments_dgp import improper_payment_rvs
+import matplotlib.pyplot as plt
 
-pfun()
+pop_data = improper_payment_rvs(mean_target = 100, cv_target = 1/2, A = 0, B = 1000, b = (0.4, 0.6), p_improper = 0.1, size = 100000, random_state = 123)
 ```
 
-# Python Session Information
+Below is the population data.  The function returns a Pandas DataFrame with the following:
 
-All of the files needed to reproduce these results can be downloaded from the Git repository <https://github.com/wkingc/improper-payments-dgp>.
+- X: Random variate(s) of a truncated gamma distribution for the payment amount.
+- B: Random variate(s) of a uniform distribution for the percent of the payment that is improper.
+- Z: Random variate(s) of a binomial distribution that indicate if a payment is improper.
+- Y: Random variate(s) for the improper payment amount.
 
-```{python session_info}
+```{python}
+#| label: pop-data
+#| eval: true
+#| echo: true
+#| output: true
+#| warning: false
+#| message: false
+
+pop_data
+```
+
+```{python}
+#| label: pop-stats
+#| eval: true
+#| echo: true
+#| output: true
+#| warning: false
+#| message: false
+
+print(f"The mean payment amount is ${pop_data.X.mean():.2f} with a total payment amount of ${pop_data.X.sum():,.2f}.\nThe coefficient of variation for payment amounts is {pop_data.X.var()**0.5/pop_data.X.mean():.2%}.\nThe minimum and maximum percentages of improper payments are {pop_data.B.min():.2%} and {pop_data.B.max():.2%}, respectively.\nThe probability of an improper payment is {pop_data.Z.mean():.2%}.\nThe mean improper payment amount (conditional on being improper) is ${pop_data.Y[pop_data.Y > 0].mean():.2f} with a total improper payment amount of ${pop_data.Y.sum():,.2f}.")
+
+plt.figure(figsize=(8,5))
+plt.hist(pop_data.Y[pop_data.Y > 0], bins = "fd", density = False, alpha = 0.6, color = "steelblue", edgecolor = 'white')
+plt.title(f"Distribution of Improper Payments")
+plt.xlabel("Improper Payment Amount ($)")
+plt.ylabel("Frequency")
+plt.grid(True, alpha = 0.2)
+plt.show()
+```
+
+# Appendicies
+
+## Truncated Gamma Distribution {#sec-truncated-gamma}
+
+A continuous random variable $X \sim GAM(\alpha, \theta)$ if it has a probability density function (PDF) of the form in @eq-gammaPDF \[[@bain1992introduction, p. 111]\].
+
+$$
+\begin{aligned}
+f(x|\alpha, \theta) = \frac{x^{\alpha-1}e^{-x/\theta}}{\theta^\alpha \Gamma(\alpha)} \text{ } \text{ for } x, \alpha, \theta > 0 \text{ with } \\
+\Gamma(\alpha) = \int_{0}^{\infty} t^{\alpha - 1}e^{-t} dt
+\end{aligned}
+$$ {#eq-gammaPDF}
+
+For this PDF the cumulative distribution function (CDF) (a.k.a, Regularized Lower Incomplete Gamma Function) is shown in @eq-gammaCDF \[[@bain1992introduction, p. 112]\].
+
+$$
+F(x|\alpha, \theta) = \int_{0}^x f(u|\alpha, \theta) du = \frac{\gamma(\alpha, \frac{x}{\theta})}{\Gamma(\alpha)} \text { with } \gamma(\alpha, \frac{x}{\theta}) = \int_{0}^{x/\theta} t^{\alpha - 1}e^{-t} dt
+$$ {#eq-gammaCDF}
+
+The support of $x$ is $[0, \infty)$, so to create a truncated distribution we need to restrict this support to the interval $[A, B]$ with $0 \le A < B$.  This implies the following truncated PDF in @eq-gammaTPDF (e.g., $\int_{A}^{B} f_T(x)dx = 1$).
+
+$$
+f_T(x|\alpha, \theta) = \frac{f(x)}{F(B|\alpha, \theta) - F(A|\alpha, \theta)} \text{ } \forall x \in [A, B]
+$$ {#eq-gammaTPDF}
+
+For the truncated gamma distribution the first two moments are shown in @eq-gammaTm1 and @eq-gammaTm2.  Detailed derivations for each of these moments can be found in [Appendix @sec-deriv].  With the first two moments in hand, the variance follows immediately since $Var[X] = E[X^2] - (E[X])^2$ \[[@bain1992introduction, p. 74]\].
+
+$$
+E[X|A \le X \le B] = \frac{\int_{A}^{B} xf(x)dx}{\int_{A}^{B} f(x)dx} = \theta \alpha \frac{F(B|\alpha + 1, \theta) - F(A|\alpha + 1, \theta)}{F(B|\alpha, \theta) - F(A|\alpha, \theta)}
+$$ {#eq-gammaTm1}
+
+$$
+E[X^2|A \le X \le B] = \frac{\int_{A}^{B} x^2f(x)dx}{\int_{A}^{B} f(x)dx} = \theta^2(\alpha + 1)\alpha \frac{F(B|\alpha+2, \theta) - F(A|\alpha + 2, \theta)}{F(B|\alpha, \theta) - F(A|\alpha, \theta)}
+$$ {#eq-gammaTm2}
+
+### Detailed Derivations {#sec-deriv}
+
+#### Derivation of the Denominator for @eq-gammaTm1 and @eq-gammaTm2 {#sec-deriv1}
+
+@thm-gammaTmDenom shows the derivation of the denominator for @eq-gammaTm1 and @eq-gammaTm2.
+
+::: {#thm-gammaTmDenom}
+$\int_{A}^{B} f(x)dx = F(B|\alpha, \theta) - F(A|\alpha, \theta)$
+:::
+
+::: {.proof}
+$\int_{A}^{B} f(x)dx = \frac{1}{\theta^{\alpha} \Gamma(\alpha)} \int_{A}^{B} x^{\alpha-1}e^{-x/\theta}$
+
+Let $t = \frac{x}{\theta} \implies x = t\theta$ and $\frac{dx}{dt} = \theta \implies dx = \theta dt$
+
+Then $\int_{A}^{B} x^{\alpha-1}e^{-x/\theta} = \int_{A/\theta}^{B/\theta} (t\theta)^{\alpha-1}e^{-t}\theta dt = \theta^{\alpha} \int_{A/\theta}^{B/\theta} t^{\alpha-1}e^{-t}dt = \theta^{\alpha} \big((\int_{0}^{B/\theta} t^{\alpha-1}e^{-t}dt) - (\int_{0}^{A/\theta} t^{\alpha-1}e^{-t}dt)\big) = \theta^{\alpha} (\gamma(\alpha, \frac{B}{\theta}) - \gamma(\alpha, \frac{A}{\theta}))$
+
+$\therefore \int_{A}^{B} f(x)dx = \frac{1}{\theta^{\alpha} \Gamma(\alpha)} (\theta^{\alpha} (\gamma(\alpha, \frac{B}{\theta}) - \gamma(\alpha, \frac{A}{\theta})) = F(B|\alpha, \theta) - F(A|\alpha, \theta)$
+:::
+
+#### Derivation of the Numerator for @eq-gammaTm1 {#sec-deriv2}
+
+@thm-gammaTm1Numerator shows the derivation of the numerator for @eq-gammaTm1.  
+
+::: {#thm-gammaTm1Numerator}
+$\int_{A}^{B} xf(x)dx = \theta \alpha (F(B|\alpha+1, \theta) - F(A|\alpha+1, \theta))$
+:::
+
+::: {.proof}
+$\int_{A}^{B} xf(x)dx = \frac{1}{\theta^{\alpha} \Gamma(\alpha)} \int_{A}^{B} x^1 x^{\alpha - 1}e^{-x/\theta} = \frac{1}{\theta^{\alpha} \Gamma(\alpha)} \int_{A}^{B} x^{\alpha}e^{-x/\theta}$
+
+Let $t = \frac{x}{\theta} \implies x = t\theta$ and $\frac{dx}{dt} = \theta \implies dx = \theta dt$
+
+Then $\int_{A}^{B} x^{\alpha}e^{-x/\theta} = \int_{A/\theta}^{B/\theta} (t\theta)^{\alpha}e^{-t} \theta dt = \theta^{\alpha + 1} \int_{A/\theta}^{B/\theta} t^{\alpha} e^{-t} dt = \theta^{\alpha + 1} (\gamma(\alpha + 1, \frac{B}{\theta}) - \gamma(\alpha + 1, \frac{A}{\theta}))$
+
+Substituting this integral into the original equation we have,
+
+$\int_{A}^{B} xf(x)dx = \frac{1}{\theta^{\alpha} \Gamma(\alpha)} \theta^{\alpha + 1} (\gamma(\alpha + 1, \frac{B}{\theta}) - \gamma(\alpha + 1, \frac{A}{\theta})) = \theta \frac{\gamma(\alpha + 1, \frac{B}{\theta}) - \gamma(\alpha + 1, \frac{A}{\theta})}{\Gamma(\alpha)}$
+
+Note $\Gamma(\alpha + 1) = \alpha \Gamma(\alpha)$ \[[@bain1992introduction, p. 111]\].
+
+$\therefore \int_{A}^{B} xf(x)dx = \theta \frac{\gamma(\alpha + 1, \frac{B}{\theta}) - \gamma(\alpha + 1, \frac{A}{\theta})}{\Gamma(\alpha)} = \theta \frac{\gamma(\alpha + 1, \frac{B}{\theta}) - \gamma(\alpha + 1, \frac{A}{\theta})}{\Gamma(\alpha+1)/\alpha} = \theta \alpha (F(B|\alpha+1, \theta) - F(A|\alpha+1, \theta))$
+:::
+
+#### Derivation of the Numerator for @eq-gammaTm2 {#sec-deriv3}
+
+@thm-gammaTm2Numerator shows the derivation of the numerator for @eq-gammaTm2.
+
+::: {#thm-gammaTm2Numerator}
+$\int_{A}^{B} x^2f(x)dx = \theta^2(\alpha + 1)\alpha (F(B|\alpha + 2, \theta)) - (F(A|\alpha + 1, \theta))$
+:::
+
+::: {.proof}
+$\int_{A}^{B} x^2f(x)dx = \frac{1}{\theta^{\alpha} \Gamma(\alpha)} \int_{A}^{B} x^2 x^{\alpha - 1}e^{-x/\theta} = \frac{1}{\theta^{\alpha} \Gamma(\alpha)} \int_{A}^{B} x^{\alpha + 1}e^{-x/\theta}$
+
+Let $t = \frac{x}{\theta} \implies x = t\theta$ and $\frac{dx}{dt} = \theta \implies dx = \theta dt$
+
+Then $\int_{A}^{B} x^{\alpha+1}e^{-x/\theta} = \int_{A/\theta}^{B/\theta} (t\theta)^{\alpha+1}e^{-t} \theta dt = \theta^{\alpha + 2} \int_{A/\theta}^{B/\theta} t^{\alpha + 1} e^{-t} dt = \theta^{\alpha + 2} (\gamma(\alpha + 2, \frac{B}{\theta}) - \gamma(\alpha + 2, \frac{A}{\theta}))$
+
+Substituting this integral into the original equation we have,
+
+$\int_{A}^{B} x^2f(x)dx = \frac{1}{\theta^{\alpha} \Gamma(\alpha)} \theta^{\alpha + 2} (\gamma(\alpha + 2, \frac{B}{\theta}) - \gamma(\alpha + 2, \frac{A}{\theta})) = \theta^2 \frac{\gamma(\alpha + 2, \frac{B}{\theta}) - \gamma(\alpha + 2, \frac{A}{\theta})}{\Gamma(\alpha)}$
+
+Note $\Gamma(\alpha + 2) = (\alpha+1) \alpha \Gamma(\alpha)$ \[[@bain1992introduction, p. 111]\].
+
+$\therefore \int_{A}^{B} x^2f(x)dx = \theta^2 \frac{\gamma(\alpha + 2, \frac{B}{\theta}) - \gamma(\alpha + 2, \frac{A}{\theta})}{\Gamma(\alpha+2)/(\alpha + 1)\alpha} = \theta^2(\alpha + 1)\alpha (F(B|\alpha + 2, \theta) - F(A|\alpha + 2, \theta))$
+:::
+
+## Python Source Code {#sec-py-source-code}
+
+### Module: improper_payments_dgp.py {#sec-py-ipdpg}
+
+```{python}
+#| label: py-ipdgp
+#| eval: false
+#| echo: true
+
+{{< include ./improper_payments_dgp.py >}}
+
+```
+
+### Unit Tests: test_improper_payments_dgp.py {#sec-py-test-ipdpg}
+
+Unit tests for the `improper_payments_dgp` module are provided in the `test_improper_payments_dgp.py` file.
+
+```{python}
+#| label: py-TestTruncatedGamma
+#| eval: false
+#| echo: true
+
+{{< include ./test_improper_payments_dgp.py >}}
+
+```
+
+## Session Information {#sec-sessioninfo}
+
+All of the files needed to reproduce these results can be downloaded from the Git repository <https://github.com/wkingc/improper-payments-dgp-py>.
+
+```{python}
+#| label: py-info
+#| eval: true
+#| output: true
 #| echo: false
+#| warning: false
+#| message: false
+
 import session_info
 session_info.show()
 ```
