@@ -28,23 +28,9 @@ knitr:
         root.dir: "./"
 ---
 
-<!-- 
-# Setup the python environment
-python3 -m venv .venv
-
-# Connect to the environment
-source .venv/bin/activate
-
-# Update pip
-pip install --upgrade pip
-
-# Save the requirements file
-pip freeze > requirements.txt
--->
-
 # Proposed Data Generating Process
 
-The population data for payments is generated under the assumption that the data generating process for each payment is exponential $X_i \sim Exp(\lambda)$ where $\lambda = 1/E[X]$ and $E[X] = \sum_x xf(x)$ with $f(x) = Pr(X = x)$ [@bain1992introduction, pp. 115-116].  To generate each improper payment let $Y_i = B_iX_iZ_i$ where $B_i \sim Unif(a \in \{0, 1\}, b > a \in \{0, 1\})$ is the percentage of each payment that is improper, and $Z_{i} \sim Bin(1,p)$, where $1$ is the number of trials and $p$ is the probability of observing an improper payment [@bain1992introduction, pp. 92-95, 109-110].  The following Python code implements this data generating process for improper payments.
+The population data for payments is generated under the assumption that the data generating process for each payment is exponential $X_i \sim Exp(\lambda)$ where $\lambda = 1/E[X]$ and $E[X] = \sum_x xf(x)$ with $f(x) = Pr(X = x)$ [@bain1992introduction, pp. 115-116].  To generate each improper payment let $Y_i = B_iX_iZ_i$ where $B_i \sim Unif(a \in [0, 1], b \ge a \in [0, 1])$ is the percentage of each payment that is improper, and $Z_{i} \sim Bin(1,p)$, where $1$ is the number of trials and $p$ is the probability of observing an improper payment [@bain1992introduction, pp. 92-95, 109-110].  The following Python code implements this data generating process for improper payments.
 
 ```{python ipdgp}
 import pandas as pd
