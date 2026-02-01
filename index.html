@@ -2360,69 +2360,25 @@ window.Quarto = {
 <section id="example" class="level1">
 <h1>Example</h1>
 <p>Suppose we want to generate 100,000 payments with maximum payment amount of $1,000, mean payment amount of $100, and a standard devation of 1/2 the payment amount (e.g., coefficient of variation equal to 0.5). The percentage of each payment that is improper is between 40% and 60% of the payment amount, and the probability that each payment is improper is 10%.</p>
-<p>We can accomplish this in Python using the <strong><code>improper_payments_dgp</code></strong> function. It accepts the following arguments:</p>
+<p>We can accomplish this in Python using the <strong><code>improper_payments_dgp</code></strong> python package [<span class="citation" data-cites="copeland2026ipaymentsdgp">(<a href="#ref-copeland2026ipaymentsdgp" role="doc-biblioref">Copeland 2026</a>)</span>]. From this module, the function <strong><code>improper_payments_dgp</code></strong> simulates improper payment data. It accepts the following arguments:</p>
 <ul>
-<li><strong><code>mean_target</code></strong>: Target mean of the truncated gamma distribution.</li>
-<li><strong><code>cv_target</code></strong>: Target coefficient of variation of the truncated gamma distribution.</li>
-<li><strong><code>A</code></strong>: Lower bound of the truncated gamma distribution.</li>
-<li><strong><code>B</code></strong>: Upper bound of the truncated gamma distribution.</li>
-<li><strong><code>b</code></strong>: Tuple indicating the lower and upper bounds of the uniform distribution for the percentage of each payment that is improper.
-<ul>
-<li>If a single value is provided, it is used for both the lower and upper bounds.</li>
-</ul></li>
-<li><strong><code>p_improper</code></strong>: Probability that a payment is improper.</li>
-<li><strong><code>size</code></strong>: Number of random variates to generate.</li>
-<li><strong><code>random_state</code></strong>: Seed for reproducibility.
+<li><strong><code>mean_target</code></strong>: The target mean payment amount.</li>
+<li><strong><code>cv_target</code></strong>: The target coefficient of variation (e.g., <span class="math inline">CV[X] = SD[X]/E[X]</span>) for the payment amount.</li>
+<li><strong><code>A</code></strong>: The minimum payment amount.</li>
+<li><strong><code>B</code></strong>: The maximum payment amount.</li>
+<li><strong><code>b</code></strong>: Bounds of the uniform distribution (<span class="math inline">0 \le b \le 1</span>) for the percentage of each payment that is improper.</li>
+<li><strong><code>p_improper</code></strong>: Probability that a given payment is improper.</li>
+<li><strong><code>size</code></strong>: The number of payments to generate.</li>
+<li><strong><code>random_state</code></strong>: The seed for random number generation to create reproducible results.
 <ul>
 <li>Set to an integer for consistent results.</li>
 <li>Set to <code>None</code> if reproducibility is not required.</li>
 </ul></li>
 </ul>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> truncated_gamma_rvs <span class="im">import</span> truncgamma_rvs</span>
-<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> scipy.stats <span class="im">import</span> uniform, binom</span>
-<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> pandas <span class="im">as</span> pd</span>
-<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> improper_payments_dgp(mean_target, cv_target, A, B, b, p_improper, size, random_state <span class="op">=</span> <span class="va">None</span>):</span>
-<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>    <span class="co">&quot;&quot;&quot;This function generates random variates for improper payments.</span></span>
-<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a><span class="co">    </span></span>
-<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a><span class="co">    Args:</span></span>
-<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a><span class="co">        mean_target (int or float):  The target mean for truncated gamma distribution.</span></span>
-<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a><span class="co">        cv_target (float):  The target coefficient of variation for truncated gamma distribution.</span></span>
-<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a><span class="co">        A (int or float): The lower bound for the truncated gamma distribution.</span></span>
-<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a><span class="co">        B (int or float): The upper bound for the truncated gamma distribution.</span></span>
-<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a><span class="co">        b (tuple): Bounds of the uniform distribution (0 &lt;= b &lt;= 1) for the percentage of each payment that is improper.</span></span>
-<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a><span class="co">        p_improper (float): Probability that a given payment is improper.</span></span>
-<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a><span class="co">        size (int): The number of random variates to generate.</span></span>
-<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a><span class="co">        random_state (int): The seed for random number generation to create reproducible results.</span></span>
-<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a><span class="co">        </span></span>
-<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a><span class="co">    Returns:</span></span>
-<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a><span class="co">        A Pandas DataFrame with the following:</span></span>
-<span id="cb1-20"><a href="#cb1-20" aria-hidden="true" tabindex="-1"></a><span class="co">            X: Random variate(s) of a truncated gamma distribution for the payment amount.</span></span>
-<span id="cb1-21"><a href="#cb1-21" aria-hidden="true" tabindex="-1"></a><span class="co">            B: Random variate(s) of a uniform distribution for the percent of the payment that is improper.</span></span>
-<span id="cb1-22"><a href="#cb1-22" aria-hidden="true" tabindex="-1"></a><span class="co">            Z: Random variate(s) of a binomial distribution that indicate if a payment is improper.</span></span>
-<span id="cb1-23"><a href="#cb1-23" aria-hidden="true" tabindex="-1"></a><span class="co">            Y: Random variate(s) for the improper payment amount.</span></span>
-<span id="cb1-24"><a href="#cb1-24" aria-hidden="true" tabindex="-1"></a><span class="co">        </span></span>
-<span id="cb1-25"><a href="#cb1-25" aria-hidden="true" tabindex="-1"></a><span class="co">    Example:</span></span>
-<span id="cb1-26"><a href="#cb1-26" aria-hidden="true" tabindex="-1"></a><span class="co">        &gt;&gt;&gt; pop_data = improper_payment_rvs(mean_target = 100, cv_target = 1/2, A = 0, B = 1000, b = (0.4, 0.6), p_improper = 0.1, size = 100000, random_state = 123)</span></span>
-<span id="cb1-27"><a href="#cb1-27" aria-hidden="true" tabindex="-1"></a><span class="co">        &gt;&gt;&gt; print(f&quot;The mean payment amount is ${pop_data.X.mean():.2f} with a total payment amount of ${pop_data.X.sum():,.2f}.</span><span class="ch">\n</span><span class="co">The coefficient of variation for payment amounts is {pop_data.X.var()**0.5/pop_data.X.mean():.2%}.</span><span class="ch">\n</span><span class="co">The minimum and maximum percentages of improper payments are {pop_data.B.min():.2%} and {pop_data.B.max():.2%}, respectively.</span><span class="ch">\n</span><span class="co">The probability of an improper payment is {pop_data.Z.mean():.2%}.</span><span class="ch">\n</span><span class="co">The mean improper payment amount (conditional on being improper) is ${pop_data.Y[pop_data.Y &gt; 0].mean():.2f} with a total improper payment amount of ${pop_data.Y.sum():,.2f}.&quot;)</span></span>
-<span id="cb1-28"><a href="#cb1-28" aria-hidden="true" tabindex="-1"></a><span class="co">    &quot;&quot;&quot;</span></span>
-<span id="cb1-29"><a href="#cb1-29" aria-hidden="true" tabindex="-1"></a>    b <span class="op">=</span> b <span class="cf">if</span> <span class="bu">type</span>(b) <span class="kw">is</span> <span class="bu">tuple</span> <span class="cf">else</span> (b, b)</span>
-<span id="cb1-30"><a href="#cb1-30" aria-hidden="true" tabindex="-1"></a>    </span>
-<span id="cb1-31"><a href="#cb1-31" aria-hidden="true" tabindex="-1"></a>    X <span class="op">=</span> truncgamma_rvs(mean_target <span class="op">=</span> mean_target, cv_target <span class="op">=</span> cv_target, A <span class="op">=</span> A, B <span class="op">=</span> B, size <span class="op">=</span> size, random_state <span class="op">=</span> random_state)</span>
-<span id="cb1-32"><a href="#cb1-32" aria-hidden="true" tabindex="-1"></a>    B <span class="op">=</span> uniform.rvs(size <span class="op">=</span> size, loc <span class="op">=</span> b[<span class="dv">0</span>], scale <span class="op">=</span> b[<span class="dv">1</span>] <span class="op">-</span> b[<span class="dv">0</span>], random_state <span class="op">=</span> random_state)</span>
-<span id="cb1-33"><a href="#cb1-33" aria-hidden="true" tabindex="-1"></a>    Z <span class="op">=</span> binom.rvs(size <span class="op">=</span> size, n <span class="op">=</span> <span class="dv">1</span>, p <span class="op">=</span> p_improper, random_state <span class="op">=</span> random_state)</span>
-<span id="cb1-34"><a href="#cb1-34" aria-hidden="true" tabindex="-1"></a>    Y <span class="op">=</span> X<span class="op">*</span>B<span class="op">*</span>Z</span>
-<span id="cb1-35"><a href="#cb1-35" aria-hidden="true" tabindex="-1"></a>    </span>
-<span id="cb1-36"><a href="#cb1-36" aria-hidden="true" tabindex="-1"></a>    pop_data <span class="op">=</span> pd.DataFrame({</span>
-<span id="cb1-37"><a href="#cb1-37" aria-hidden="true" tabindex="-1"></a>        <span class="st">&quot;X&quot;</span>: X,</span>
-<span id="cb1-38"><a href="#cb1-38" aria-hidden="true" tabindex="-1"></a>        <span class="st">&quot;B&quot;</span>: B,</span>
-<span id="cb1-39"><a href="#cb1-39" aria-hidden="true" tabindex="-1"></a>        <span class="st">&quot;Z&quot;</span>: Z,</span>
-<span id="cb1-40"><a href="#cb1-40" aria-hidden="true" tabindex="-1"></a>        <span class="st">&quot;Y&quot;</span>: Y})</span>
-<span id="cb1-41"><a href="#cb1-41" aria-hidden="true" tabindex="-1"></a>    </span>
-<span id="cb1-42"><a href="#cb1-42" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> pop_data</span>
-<span id="cb1-43"><a href="#cb1-43" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-44"><a href="#cb1-44" aria-hidden="true" tabindex="-1"></a>pop_data <span class="op">=</span> improper_payments_dgp(mean_target <span class="op">=</span> <span class="dv">100</span>, cv_target <span class="op">=</span> <span class="dv">1</span><span class="op">/</span><span class="dv">2</span>, A <span class="op">=</span> <span class="dv">0</span>, B <span class="op">=</span> <span class="dv">1000</span>, b <span class="op">=</span> (<span class="fl">0.4</span>, <span class="fl">0.6</span>), p_improper <span class="op">=</span> <span class="fl">0.1</span>, size <span class="op">=</span> <span class="dv">100000</span>, random_state <span class="op">=</span> <span class="dv">123</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> improper_payments_dgp <span class="im">import</span> improper_payments_dgp</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>pop_data <span class="op">=</span> improper_payments_dgp(mean_target <span class="op">=</span> <span class="dv">100</span>, cv_target <span class="op">=</span> <span class="dv">1</span><span class="op">/</span><span class="dv">2</span>, A <span class="op">=</span> <span class="dv">0</span>, B <span class="op">=</span> <span class="dv">1000</span>, b <span class="op">=</span> (<span class="fl">0.4</span>, <span class="fl">0.6</span>), p_improper <span class="op">=</span> <span class="fl">0.1</span>, size <span class="op">=</span> <span class="dv">100000</span>, random_state <span class="op">=</span> <span class="dv">123</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <p>Below is the population data. The function returns a Pandas DataFrame with the following:</p>
 <ul>
@@ -2567,16 +2523,15 @@ The mean improper payment amount (conditional on being improper) is $59.66 with 
 <div class="cell">
 <div class="cell-output cell-output-stdout">
 <pre><code>-----
-matplotlib          3.10.8
-pandas              3.0.0
-scipy               1.17.0
-session_info        v1.0.1
-truncated_gamma_rvs 0.1.4
+improper_payments_dgp       0.1.6
+matplotlib                  3.10.8
+pandas                      3.0.0
+session_info                v1.0.1
 -----
 Python 3.14.2 (main, Dec  5 2025, 16:49:16) [Clang 17.0.0 (clang-1700.6.3.2)]
 macOS-26.2-arm64-arm-64bit-Mach-O
 -----
-Session information updated at 2026-02-01 08:49</code></pre>
+Session information updated at 2026-02-01 16:00</code></pre>
 </div>
 </div>
 </section>
@@ -2590,6 +2545,9 @@ Session information updated at 2026-02-01 08:49</code></pre>
 <div id="quarto-appendix"><section class="quarto-appendix-contents" role="doc-bibliography" id="quarto-bibliography"><h2 class="anchored quarto-appendix-heading">References</h2><div id="refs" class="references csl-bib-body hanging-indent" data-entry-spacing="0" role="list">
 <div id="ref-bain1992introduction" class="csl-entry" role="listitem">
 Bain, Lee J, and Max Engelhardt. 1992. <em><span class="nocase">Introduction to Probability and Mathematical Statistics</span></em>. Vol. 4. Duxbury Press Belmont, CA.
+</div>
+<div id="ref-copeland2026ipaymentsdgp" class="csl-entry" role="listitem">
+Copeland, Wade K. 2026. <span>“<span class="nocase">improper-payments-dgp: A Python package to simulate data for improper payments</span>.”</span> <a href="https://pypi.org/project/improper-payments-dgp/">https://pypi.org/project/improper-payments-dgp/</a>.
 </div>
 </div></section></div></main>
 <!-- /main column -->
@@ -3085,138 +3043,96 @@ Bain, Lee J, and Max Engelhardt. 1992. <em><span class="nocase">Introduction to 
 <span id="cb7-39"><a href="#cb7-39" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb7-40"><a href="#cb7-40" aria-hidden="true" tabindex="-1"></a>Suppose we want to generate 100,000 payments with maximum payment amount of $1,000, mean payment amount of $100, and a standard devation of 1/2 the payment amount (e.g., coefficient of variation equal to 0.5).  The percentage of each payment that is improper is between 40<span class="dv">&amp;#37;</span> and 60<span class="dv">&amp;#37;</span> of the payment amount, and the probability that each payment is improper is 10<span class="dv">&amp;#37;</span>.</span>
 <span id="cb7-41"><a href="#cb7-41" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-42"><a href="#cb7-42" aria-hidden="true" tabindex="-1"></a>We can accomplish this in Python using the **`improper_payments_dgp`** function.  It accepts the following arguments:</span>
+<span id="cb7-42"><a href="#cb7-42" aria-hidden="true" tabindex="-1"></a>We can accomplish this in Python using the **`improper_payments_dgp`** python package \[[@copeland2026ipaymentsdgp]\].  From this module, the function **`improper_payments_dgp`** simulates improper payment data.  It accepts the following arguments:</span>
 <span id="cb7-43"><a href="#cb7-43" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-44"><a href="#cb7-44" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**`mean_target`**: Target mean of the truncated gamma distribution.</span>
-<span id="cb7-45"><a href="#cb7-45" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**`cv_target`**: Target coefficient of variation of the truncated gamma distribution.</span>
-<span id="cb7-46"><a href="#cb7-46" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**`A`**: Lower bound of the truncated gamma distribution.</span>
-<span id="cb7-47"><a href="#cb7-47" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**`B`**: Upper bound of the truncated gamma distribution.</span>
-<span id="cb7-48"><a href="#cb7-48" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**`b`**: Tuple indicating the lower and upper bounds of the uniform distribution for the percentage of each payment that is improper.  </span>
-<span id="cb7-49"><a href="#cb7-49" aria-hidden="true" tabindex="-1"></a><span class="ss">  - </span>If a single value is provided, it is used for both the lower and upper bounds.</span>
-<span id="cb7-50"><a href="#cb7-50" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**`p_improper`**: Probability that a payment is improper.</span>
-<span id="cb7-51"><a href="#cb7-51" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**`size`**: Number of random variates to generate.</span>
-<span id="cb7-52"><a href="#cb7-52" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**`random_state`**: Seed for reproducibility.  </span>
-<span id="cb7-53"><a href="#cb7-53" aria-hidden="true" tabindex="-1"></a><span class="ss">  - </span>Set to an integer for consistent results.</span>
-<span id="cb7-54"><a href="#cb7-54" aria-hidden="true" tabindex="-1"></a><span class="ss">  - </span>Set to <span class="in">`None`</span> if reproducibility is not required.</span>
-<span id="cb7-55"><a href="#cb7-55" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-58"><a href="#cb7-58" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
-<span id="cb7-59"><a href="#cb7-59" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: ip-rvs</span></span>
-<span id="cb7-60"><a href="#cb7-60" aria-hidden="true" tabindex="-1"></a><span class="co">#| eval: true</span></span>
-<span id="cb7-61"><a href="#cb7-61" aria-hidden="true" tabindex="-1"></a><span class="co">#| echo: true</span></span>
-<span id="cb7-62"><a href="#cb7-62" aria-hidden="true" tabindex="-1"></a><span class="co">#| output: true</span></span>
-<span id="cb7-63"><a href="#cb7-63" aria-hidden="true" tabindex="-1"></a><span class="co">#| warning: false</span></span>
-<span id="cb7-64"><a href="#cb7-64" aria-hidden="true" tabindex="-1"></a><span class="co">#| message: false</span></span>
-<span id="cb7-65"><a href="#cb7-65" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-66"><a href="#cb7-66" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> truncated_gamma_rvs <span class="im">import</span> truncgamma_rvs</span>
-<span id="cb7-67"><a href="#cb7-67" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> scipy.stats <span class="im">import</span> uniform, binom</span>
-<span id="cb7-68"><a href="#cb7-68" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> pandas <span class="im">as</span> pd</span>
+<span id="cb7-44"><a href="#cb7-44" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**`mean_target`**: The target mean payment amount.</span>
+<span id="cb7-45"><a href="#cb7-45" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**`cv_target`**: The target coefficient of variation (e.g., $CV<span class="co">[</span><span class="ot">X</span><span class="co">]</span> = SD<span class="co">[</span><span class="ot">X</span><span class="co">]</span>/E<span class="co">[</span><span class="ot">X</span><span class="co">]</span>$) for the payment amount.</span>
+<span id="cb7-46"><a href="#cb7-46" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**`A`**: The minimum payment amount.</span>
+<span id="cb7-47"><a href="#cb7-47" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**`B`**: The maximum payment amount.</span>
+<span id="cb7-48"><a href="#cb7-48" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**`b`**: Bounds of the uniform distribution ($0 \le b \le 1$) for the percentage of each payment that is improper.</span>
+<span id="cb7-49"><a href="#cb7-49" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**`p_improper`**: Probability that a given payment is improper.</span>
+<span id="cb7-50"><a href="#cb7-50" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**`size`**: The number of payments to generate.</span>
+<span id="cb7-51"><a href="#cb7-51" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**`random_state`**: The seed for random number generation to create reproducible results.</span>
+<span id="cb7-52"><a href="#cb7-52" aria-hidden="true" tabindex="-1"></a><span class="ss">  - </span>Set to an integer for consistent results.</span>
+<span id="cb7-53"><a href="#cb7-53" aria-hidden="true" tabindex="-1"></a><span class="ss">  - </span>Set to <span class="in">`None`</span> if reproducibility is not required.</span>
+<span id="cb7-54"><a href="#cb7-54" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-57"><a href="#cb7-57" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
+<span id="cb7-58"><a href="#cb7-58" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: ip-rvs</span></span>
+<span id="cb7-59"><a href="#cb7-59" aria-hidden="true" tabindex="-1"></a><span class="co">#| eval: true</span></span>
+<span id="cb7-60"><a href="#cb7-60" aria-hidden="true" tabindex="-1"></a><span class="co">#| echo: true</span></span>
+<span id="cb7-61"><a href="#cb7-61" aria-hidden="true" tabindex="-1"></a><span class="co">#| output: true</span></span>
+<span id="cb7-62"><a href="#cb7-62" aria-hidden="true" tabindex="-1"></a><span class="co">#| warning: false</span></span>
+<span id="cb7-63"><a href="#cb7-63" aria-hidden="true" tabindex="-1"></a><span class="co">#| message: false</span></span>
+<span id="cb7-64"><a href="#cb7-64" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-65"><a href="#cb7-65" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> improper_payments_dgp <span class="im">import</span> improper_payments_dgp</span>
+<span id="cb7-66"><a href="#cb7-66" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-67"><a href="#cb7-67" aria-hidden="true" tabindex="-1"></a>pop_data <span class="op">=</span> improper_payments_dgp(mean_target <span class="op">=</span> <span class="dv">100</span>, cv_target <span class="op">=</span> <span class="dv">1</span><span class="op">/</span><span class="dv">2</span>, A <span class="op">=</span> <span class="dv">0</span>, B <span class="op">=</span> <span class="dv">1000</span>, b <span class="op">=</span> (<span class="fl">0.4</span>, <span class="fl">0.6</span>), p_improper <span class="op">=</span> <span class="fl">0.1</span>, size <span class="op">=</span> <span class="dv">100000</span>, random_state <span class="op">=</span> <span class="dv">123</span>)</span>
+<span id="cb7-68"><a href="#cb7-68" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
 <span id="cb7-69"><a href="#cb7-69" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-70"><a href="#cb7-70" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> improper_payments_dgp(mean_target, cv_target, A, B, b, p_improper, size, random_state <span class="op">=</span> <span class="va">None</span>):</span>
-<span id="cb7-71"><a href="#cb7-71" aria-hidden="true" tabindex="-1"></a>    <span class="co">&quot;&quot;&quot;This function generates random variates for improper payments.</span></span>
-<span id="cb7-72"><a href="#cb7-72" aria-hidden="true" tabindex="-1"></a><span class="co">    </span></span>
-<span id="cb7-73"><a href="#cb7-73" aria-hidden="true" tabindex="-1"></a><span class="co">    Args:</span></span>
-<span id="cb7-74"><a href="#cb7-74" aria-hidden="true" tabindex="-1"></a><span class="co">        mean_target (int or float):  The target mean for truncated gamma distribution.</span></span>
-<span id="cb7-75"><a href="#cb7-75" aria-hidden="true" tabindex="-1"></a><span class="co">        cv_target (float):  The target coefficient of variation for truncated gamma distribution.</span></span>
-<span id="cb7-76"><a href="#cb7-76" aria-hidden="true" tabindex="-1"></a><span class="co">        A (int or float): The lower bound for the truncated gamma distribution.</span></span>
-<span id="cb7-77"><a href="#cb7-77" aria-hidden="true" tabindex="-1"></a><span class="co">        B (int or float): The upper bound for the truncated gamma distribution.</span></span>
-<span id="cb7-78"><a href="#cb7-78" aria-hidden="true" tabindex="-1"></a><span class="co">        b (tuple): Bounds of the uniform distribution (0 &lt;= b &lt;= 1) for the percentage of each payment that is improper.</span></span>
-<span id="cb7-79"><a href="#cb7-79" aria-hidden="true" tabindex="-1"></a><span class="co">        p_improper (float): Probability that a given payment is improper.</span></span>
-<span id="cb7-80"><a href="#cb7-80" aria-hidden="true" tabindex="-1"></a><span class="co">        size (int): The number of random variates to generate.</span></span>
-<span id="cb7-81"><a href="#cb7-81" aria-hidden="true" tabindex="-1"></a><span class="co">        random_state (int): The seed for random number generation to create reproducible results.</span></span>
-<span id="cb7-82"><a href="#cb7-82" aria-hidden="true" tabindex="-1"></a><span class="co">        </span></span>
-<span id="cb7-83"><a href="#cb7-83" aria-hidden="true" tabindex="-1"></a><span class="co">    Returns:</span></span>
-<span id="cb7-84"><a href="#cb7-84" aria-hidden="true" tabindex="-1"></a><span class="co">        A Pandas DataFrame with the following:</span></span>
-<span id="cb7-85"><a href="#cb7-85" aria-hidden="true" tabindex="-1"></a><span class="co">            X: Random variate(s) of a truncated gamma distribution for the payment amount.</span></span>
-<span id="cb7-86"><a href="#cb7-86" aria-hidden="true" tabindex="-1"></a><span class="co">            B: Random variate(s) of a uniform distribution for the percent of the payment that is improper.</span></span>
-<span id="cb7-87"><a href="#cb7-87" aria-hidden="true" tabindex="-1"></a><span class="co">            Z: Random variate(s) of a binomial distribution that indicate if a payment is improper.</span></span>
-<span id="cb7-88"><a href="#cb7-88" aria-hidden="true" tabindex="-1"></a><span class="co">            Y: Random variate(s) for the improper payment amount.</span></span>
-<span id="cb7-89"><a href="#cb7-89" aria-hidden="true" tabindex="-1"></a><span class="co">        </span></span>
-<span id="cb7-90"><a href="#cb7-90" aria-hidden="true" tabindex="-1"></a><span class="co">    Example:</span></span>
-<span id="cb7-91"><a href="#cb7-91" aria-hidden="true" tabindex="-1"></a><span class="co">        &gt;&gt;&gt; pop_data = improper_payment_rvs(mean_target = 100, cv_target = 1/2, A = 0, B = 1000, b = (0.4, 0.6), p_improper = 0.1, size = 100000, random_state = 123)</span></span>
-<span id="cb7-92"><a href="#cb7-92" aria-hidden="true" tabindex="-1"></a><span class="co">        &gt;&gt;&gt; print(f&quot;The mean payment amount is ${pop_data.X.mean():.2f} with a total payment amount of ${pop_data.X.sum():,.2f}.</span><span class="ch">\n</span><span class="co">The coefficient of variation for payment amounts is {pop_data.X.var()**0.5/pop_data.X.mean():.2%}.</span><span class="ch">\n</span><span class="co">The minimum and maximum percentages of improper payments are {pop_data.B.min():.2%} and {pop_data.B.max():.2%}, respectively.</span><span class="ch">\n</span><span class="co">The probability of an improper payment is {pop_data.Z.mean():.2%}.</span><span class="ch">\n</span><span class="co">The mean improper payment amount (conditional on being improper) is ${pop_data.Y[pop_data.Y &gt; 0].mean():.2f} with a total improper payment amount of ${pop_data.Y.sum():,.2f}.&quot;)</span></span>
-<span id="cb7-93"><a href="#cb7-93" aria-hidden="true" tabindex="-1"></a><span class="co">    &quot;&quot;&quot;</span></span>
-<span id="cb7-94"><a href="#cb7-94" aria-hidden="true" tabindex="-1"></a>    b <span class="op">=</span> b <span class="cf">if</span> <span class="bu">type</span>(b) <span class="kw">is</span> <span class="bu">tuple</span> <span class="cf">else</span> (b, b)</span>
-<span id="cb7-95"><a href="#cb7-95" aria-hidden="true" tabindex="-1"></a>    </span>
-<span id="cb7-96"><a href="#cb7-96" aria-hidden="true" tabindex="-1"></a>    X <span class="op">=</span> truncgamma_rvs(mean_target <span class="op">=</span> mean_target, cv_target <span class="op">=</span> cv_target, A <span class="op">=</span> A, B <span class="op">=</span> B, size <span class="op">=</span> size, random_state <span class="op">=</span> random_state)</span>
-<span id="cb7-97"><a href="#cb7-97" aria-hidden="true" tabindex="-1"></a>    B <span class="op">=</span> uniform.rvs(size <span class="op">=</span> size, loc <span class="op">=</span> b[<span class="dv">0</span>], scale <span class="op">=</span> b[<span class="dv">1</span>] <span class="op">-</span> b[<span class="dv">0</span>], random_state <span class="op">=</span> random_state)</span>
-<span id="cb7-98"><a href="#cb7-98" aria-hidden="true" tabindex="-1"></a>    Z <span class="op">=</span> binom.rvs(size <span class="op">=</span> size, n <span class="op">=</span> <span class="dv">1</span>, p <span class="op">=</span> p_improper, random_state <span class="op">=</span> random_state)</span>
-<span id="cb7-99"><a href="#cb7-99" aria-hidden="true" tabindex="-1"></a>    Y <span class="op">=</span> X<span class="op">*</span>B<span class="op">*</span>Z</span>
-<span id="cb7-100"><a href="#cb7-100" aria-hidden="true" tabindex="-1"></a>    </span>
-<span id="cb7-101"><a href="#cb7-101" aria-hidden="true" tabindex="-1"></a>    pop_data <span class="op">=</span> pd.DataFrame({</span>
-<span id="cb7-102"><a href="#cb7-102" aria-hidden="true" tabindex="-1"></a>        <span class="st">&quot;X&quot;</span>: X,</span>
-<span id="cb7-103"><a href="#cb7-103" aria-hidden="true" tabindex="-1"></a>        <span class="st">&quot;B&quot;</span>: B,</span>
-<span id="cb7-104"><a href="#cb7-104" aria-hidden="true" tabindex="-1"></a>        <span class="st">&quot;Z&quot;</span>: Z,</span>
-<span id="cb7-105"><a href="#cb7-105" aria-hidden="true" tabindex="-1"></a>        <span class="st">&quot;Y&quot;</span>: Y})</span>
-<span id="cb7-106"><a href="#cb7-106" aria-hidden="true" tabindex="-1"></a>    </span>
-<span id="cb7-107"><a href="#cb7-107" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> pop_data</span>
-<span id="cb7-108"><a href="#cb7-108" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-109"><a href="#cb7-109" aria-hidden="true" tabindex="-1"></a>pop_data <span class="op">=</span> improper_payments_dgp(mean_target <span class="op">=</span> <span class="dv">100</span>, cv_target <span class="op">=</span> <span class="dv">1</span><span class="op">/</span><span class="dv">2</span>, A <span class="op">=</span> <span class="dv">0</span>, B <span class="op">=</span> <span class="dv">1000</span>, b <span class="op">=</span> (<span class="fl">0.4</span>, <span class="fl">0.6</span>), p_improper <span class="op">=</span> <span class="fl">0.1</span>, size <span class="op">=</span> <span class="dv">100000</span>, random_state <span class="op">=</span> <span class="dv">123</span>)</span>
-<span id="cb7-110"><a href="#cb7-110" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb7-111"><a href="#cb7-111" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-112"><a href="#cb7-112" aria-hidden="true" tabindex="-1"></a>Below is the population data.  The function returns a Pandas DataFrame with the following:</span>
+<span id="cb7-70"><a href="#cb7-70" aria-hidden="true" tabindex="-1"></a>Below is the population data.  The function returns a Pandas DataFrame with the following:</span>
+<span id="cb7-71"><a href="#cb7-71" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-72"><a href="#cb7-72" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>X: Random variate(s) of a truncated gamma distribution for the payment amount.</span>
+<span id="cb7-73"><a href="#cb7-73" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>B: Random variate(s) of a uniform distribution for the percent of the payment that is improper.</span>
+<span id="cb7-74"><a href="#cb7-74" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Z: Random variate(s) of a binomial distribution that indicate if a payment is improper.</span>
+<span id="cb7-75"><a href="#cb7-75" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Y: Random variate(s) for the improper payment amount.</span>
+<span id="cb7-76"><a href="#cb7-76" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-79"><a href="#cb7-79" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
+<span id="cb7-80"><a href="#cb7-80" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: pop-data</span></span>
+<span id="cb7-81"><a href="#cb7-81" aria-hidden="true" tabindex="-1"></a><span class="co">#| eval: true</span></span>
+<span id="cb7-82"><a href="#cb7-82" aria-hidden="true" tabindex="-1"></a><span class="co">#| echo: true</span></span>
+<span id="cb7-83"><a href="#cb7-83" aria-hidden="true" tabindex="-1"></a><span class="co">#| output: true</span></span>
+<span id="cb7-84"><a href="#cb7-84" aria-hidden="true" tabindex="-1"></a><span class="co">#| warning: false</span></span>
+<span id="cb7-85"><a href="#cb7-85" aria-hidden="true" tabindex="-1"></a><span class="co">#| message: false</span></span>
+<span id="cb7-86"><a href="#cb7-86" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-87"><a href="#cb7-87" aria-hidden="true" tabindex="-1"></a>pop_data</span>
+<span id="cb7-88"><a href="#cb7-88" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb7-89"><a href="#cb7-89" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-92"><a href="#cb7-92" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
+<span id="cb7-93"><a href="#cb7-93" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: pop-stats</span></span>
+<span id="cb7-94"><a href="#cb7-94" aria-hidden="true" tabindex="-1"></a><span class="co">#| eval: true</span></span>
+<span id="cb7-95"><a href="#cb7-95" aria-hidden="true" tabindex="-1"></a><span class="co">#| echo: true</span></span>
+<span id="cb7-96"><a href="#cb7-96" aria-hidden="true" tabindex="-1"></a><span class="co">#| output: true</span></span>
+<span id="cb7-97"><a href="#cb7-97" aria-hidden="true" tabindex="-1"></a><span class="co">#| warning: false</span></span>
+<span id="cb7-98"><a href="#cb7-98" aria-hidden="true" tabindex="-1"></a><span class="co">#| message: false</span></span>
+<span id="cb7-99"><a href="#cb7-99" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-100"><a href="#cb7-100" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f&quot;The mean payment amount is $</span><span class="sc">{</span>pop_data<span class="sc">.</span>X<span class="sc">.</span>mean()<span class="sc">:.2f}</span><span class="ss"> with a total payment amount of $</span><span class="sc">{</span>pop_data<span class="sc">.</span>X<span class="sc">.</span><span class="bu">sum</span>()<span class="sc">:,.2f}</span><span class="ss">.</span><span class="ch">\n</span><span class="ss">The coefficient of variation for payment amounts is </span><span class="sc">{</span>pop_data<span class="sc">.</span>X<span class="sc">.</span>var()<span class="op">**</span><span class="fl">0.5</span><span class="op">/</span>pop_data<span class="sc">.</span>X<span class="sc">.</span>mean()<span class="sc">:.2%}</span><span class="ss">.</span><span class="ch">\n</span><span class="ss">The minimum and maximum percentages of improper payments are </span><span class="sc">{</span>pop_data<span class="sc">.</span>B<span class="sc">.</span><span class="bu">min</span>()<span class="sc">:.2%}</span><span class="ss"> and </span><span class="sc">{</span>pop_data<span class="sc">.</span>B<span class="sc">.</span><span class="bu">max</span>()<span class="sc">:.2%}</span><span class="ss">, respectively.</span><span class="ch">\n</span><span class="ss">The probability of an improper payment is </span><span class="sc">{</span>pop_data<span class="sc">.</span>Z<span class="sc">.</span>mean()<span class="sc">:.2%}</span><span class="ss">.</span><span class="ch">\n</span><span class="ss">The mean improper payment amount (conditional on being improper) is $</span><span class="sc">{</span>pop_data<span class="sc">.</span>Y[pop_data.Y <span class="op">&gt;</span> <span class="dv">0</span>]<span class="sc">.</span>mean()<span class="sc">:.2f}</span><span class="ss"> with a total improper payment amount of $</span><span class="sc">{</span>pop_data<span class="sc">.</span>Y<span class="sc">.</span><span class="bu">sum</span>()<span class="sc">:,.2f}</span><span class="ss">.&quot;</span>)</span>
+<span id="cb7-101"><a href="#cb7-101" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb7-102"><a href="#cb7-102" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-105"><a href="#cb7-105" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
+<span id="cb7-106"><a href="#cb7-106" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: pop-ip-plot</span></span>
+<span id="cb7-107"><a href="#cb7-107" aria-hidden="true" tabindex="-1"></a><span class="co">#| eval: true</span></span>
+<span id="cb7-108"><a href="#cb7-108" aria-hidden="true" tabindex="-1"></a><span class="co">#| echo: true</span></span>
+<span id="cb7-109"><a href="#cb7-109" aria-hidden="true" tabindex="-1"></a><span class="co">#| output: true</span></span>
+<span id="cb7-110"><a href="#cb7-110" aria-hidden="true" tabindex="-1"></a><span class="co">#| warning: false</span></span>
+<span id="cb7-111"><a href="#cb7-111" aria-hidden="true" tabindex="-1"></a><span class="co">#| message: false</span></span>
+<span id="cb7-112"><a href="#cb7-112" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> matplotlib.pyplot <span class="im">as</span> plt</span>
 <span id="cb7-113"><a href="#cb7-113" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-114"><a href="#cb7-114" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>X: Random variate(s) of a truncated gamma distribution for the payment amount.</span>
-<span id="cb7-115"><a href="#cb7-115" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>B: Random variate(s) of a uniform distribution for the percent of the payment that is improper.</span>
-<span id="cb7-116"><a href="#cb7-116" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Z: Random variate(s) of a binomial distribution that indicate if a payment is improper.</span>
-<span id="cb7-117"><a href="#cb7-117" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Y: Random variate(s) for the improper payment amount.</span>
-<span id="cb7-118"><a href="#cb7-118" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-121"><a href="#cb7-121" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
-<span id="cb7-122"><a href="#cb7-122" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: pop-data</span></span>
-<span id="cb7-123"><a href="#cb7-123" aria-hidden="true" tabindex="-1"></a><span class="co">#| eval: true</span></span>
-<span id="cb7-124"><a href="#cb7-124" aria-hidden="true" tabindex="-1"></a><span class="co">#| echo: true</span></span>
-<span id="cb7-125"><a href="#cb7-125" aria-hidden="true" tabindex="-1"></a><span class="co">#| output: true</span></span>
-<span id="cb7-126"><a href="#cb7-126" aria-hidden="true" tabindex="-1"></a><span class="co">#| warning: false</span></span>
-<span id="cb7-127"><a href="#cb7-127" aria-hidden="true" tabindex="-1"></a><span class="co">#| message: false</span></span>
-<span id="cb7-128"><a href="#cb7-128" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-129"><a href="#cb7-129" aria-hidden="true" tabindex="-1"></a>pop_data</span>
-<span id="cb7-130"><a href="#cb7-130" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb7-131"><a href="#cb7-131" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-134"><a href="#cb7-134" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
-<span id="cb7-135"><a href="#cb7-135" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: pop-stats</span></span>
-<span id="cb7-136"><a href="#cb7-136" aria-hidden="true" tabindex="-1"></a><span class="co">#| eval: true</span></span>
-<span id="cb7-137"><a href="#cb7-137" aria-hidden="true" tabindex="-1"></a><span class="co">#| echo: true</span></span>
-<span id="cb7-138"><a href="#cb7-138" aria-hidden="true" tabindex="-1"></a><span class="co">#| output: true</span></span>
-<span id="cb7-139"><a href="#cb7-139" aria-hidden="true" tabindex="-1"></a><span class="co">#| warning: false</span></span>
-<span id="cb7-140"><a href="#cb7-140" aria-hidden="true" tabindex="-1"></a><span class="co">#| message: false</span></span>
-<span id="cb7-141"><a href="#cb7-141" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-142"><a href="#cb7-142" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f&quot;The mean payment amount is $</span><span class="sc">{</span>pop_data<span class="sc">.</span>X<span class="sc">.</span>mean()<span class="sc">:.2f}</span><span class="ss"> with a total payment amount of $</span><span class="sc">{</span>pop_data<span class="sc">.</span>X<span class="sc">.</span><span class="bu">sum</span>()<span class="sc">:,.2f}</span><span class="ss">.</span><span class="ch">\n</span><span class="ss">The coefficient of variation for payment amounts is </span><span class="sc">{</span>pop_data<span class="sc">.</span>X<span class="sc">.</span>var()<span class="op">**</span><span class="fl">0.5</span><span class="op">/</span>pop_data<span class="sc">.</span>X<span class="sc">.</span>mean()<span class="sc">:.2%}</span><span class="ss">.</span><span class="ch">\n</span><span class="ss">The minimum and maximum percentages of improper payments are </span><span class="sc">{</span>pop_data<span class="sc">.</span>B<span class="sc">.</span><span class="bu">min</span>()<span class="sc">:.2%}</span><span class="ss"> and </span><span class="sc">{</span>pop_data<span class="sc">.</span>B<span class="sc">.</span><span class="bu">max</span>()<span class="sc">:.2%}</span><span class="ss">, respectively.</span><span class="ch">\n</span><span class="ss">The probability of an improper payment is </span><span class="sc">{</span>pop_data<span class="sc">.</span>Z<span class="sc">.</span>mean()<span class="sc">:.2%}</span><span class="ss">.</span><span class="ch">\n</span><span class="ss">The mean improper payment amount (conditional on being improper) is $</span><span class="sc">{</span>pop_data<span class="sc">.</span>Y[pop_data.Y <span class="op">&gt;</span> <span class="dv">0</span>]<span class="sc">.</span>mean()<span class="sc">:.2f}</span><span class="ss"> with a total improper payment amount of $</span><span class="sc">{</span>pop_data<span class="sc">.</span>Y<span class="sc">.</span><span class="bu">sum</span>()<span class="sc">:,.2f}</span><span class="ss">.&quot;</span>)</span>
-<span id="cb7-143"><a href="#cb7-143" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb7-144"><a href="#cb7-144" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-147"><a href="#cb7-147" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
-<span id="cb7-148"><a href="#cb7-148" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: pop-ip-plot</span></span>
-<span id="cb7-149"><a href="#cb7-149" aria-hidden="true" tabindex="-1"></a><span class="co">#| eval: true</span></span>
-<span id="cb7-150"><a href="#cb7-150" aria-hidden="true" tabindex="-1"></a><span class="co">#| echo: true</span></span>
-<span id="cb7-151"><a href="#cb7-151" aria-hidden="true" tabindex="-1"></a><span class="co">#| output: true</span></span>
-<span id="cb7-152"><a href="#cb7-152" aria-hidden="true" tabindex="-1"></a><span class="co">#| warning: false</span></span>
-<span id="cb7-153"><a href="#cb7-153" aria-hidden="true" tabindex="-1"></a><span class="co">#| message: false</span></span>
-<span id="cb7-154"><a href="#cb7-154" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> matplotlib.pyplot <span class="im">as</span> plt</span>
-<span id="cb7-155"><a href="#cb7-155" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-156"><a href="#cb7-156" aria-hidden="true" tabindex="-1"></a>plt.figure(figsize<span class="op">=</span>(<span class="dv">8</span>,<span class="dv">5</span>))</span>
-<span id="cb7-157"><a href="#cb7-157" aria-hidden="true" tabindex="-1"></a>plt.hist(pop_data.Y[pop_data.Y <span class="op">&gt;</span> <span class="dv">0</span>], bins <span class="op">=</span> <span class="st">&quot;fd&quot;</span>, density <span class="op">=</span> <span class="va">False</span>, alpha <span class="op">=</span> <span class="fl">0.6</span>, color <span class="op">=</span> <span class="st">&quot;steelblue&quot;</span>, edgecolor <span class="op">=</span> <span class="st">&#39;white&#39;</span>)</span>
-<span id="cb7-158"><a href="#cb7-158" aria-hidden="true" tabindex="-1"></a>plt.title(<span class="ss">f&quot;Distribution of Improper Payments&quot;</span>)</span>
-<span id="cb7-159"><a href="#cb7-159" aria-hidden="true" tabindex="-1"></a>plt.xlabel(<span class="st">&quot;Improper Payment Amount ($)&quot;</span>)</span>
-<span id="cb7-160"><a href="#cb7-160" aria-hidden="true" tabindex="-1"></a>plt.ylabel(<span class="st">&quot;Frequency&quot;</span>)</span>
-<span id="cb7-161"><a href="#cb7-161" aria-hidden="true" tabindex="-1"></a>plt.grid(<span class="va">True</span>, alpha <span class="op">=</span> <span class="fl">0.2</span>)</span>
-<span id="cb7-162"><a href="#cb7-162" aria-hidden="true" tabindex="-1"></a>plt.show()</span>
-<span id="cb7-163"><a href="#cb7-163" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb7-164"><a href="#cb7-164" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-165"><a href="#cb7-165" aria-hidden="true" tabindex="-1"></a><span class="fu"># Session Information {#sec-sessioninfo}</span></span>
-<span id="cb7-166"><a href="#cb7-166" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-167"><a href="#cb7-167" aria-hidden="true" tabindex="-1"></a>All of the files needed to reproduce these results can be downloaded from the Git repository <span class="ot">&lt;https://github.com/wkingc/improper-payments-dgp-py&gt;</span>.</span>
-<span id="cb7-168"><a href="#cb7-168" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-171"><a href="#cb7-171" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
-<span id="cb7-172"><a href="#cb7-172" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: py-info</span></span>
-<span id="cb7-173"><a href="#cb7-173" aria-hidden="true" tabindex="-1"></a><span class="co">#| eval: true</span></span>
-<span id="cb7-174"><a href="#cb7-174" aria-hidden="true" tabindex="-1"></a><span class="co">#| output: true</span></span>
-<span id="cb7-175"><a href="#cb7-175" aria-hidden="true" tabindex="-1"></a><span class="co">#| echo: false</span></span>
-<span id="cb7-176"><a href="#cb7-176" aria-hidden="true" tabindex="-1"></a><span class="co">#| warning: false</span></span>
-<span id="cb7-177"><a href="#cb7-177" aria-hidden="true" tabindex="-1"></a><span class="co">#| message: false</span></span>
-<span id="cb7-178"><a href="#cb7-178" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-179"><a href="#cb7-179" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> session_info</span>
-<span id="cb7-180"><a href="#cb7-180" aria-hidden="true" tabindex="-1"></a>session_info.show()</span>
-<span id="cb7-181"><a href="#cb7-181" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb7-182"><a href="#cb7-182" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-183"><a href="#cb7-183" aria-hidden="true" tabindex="-1"></a><span class="fu"># References</span></span>
+<span id="cb7-114"><a href="#cb7-114" aria-hidden="true" tabindex="-1"></a>plt.figure(figsize<span class="op">=</span>(<span class="dv">8</span>,<span class="dv">5</span>))</span>
+<span id="cb7-115"><a href="#cb7-115" aria-hidden="true" tabindex="-1"></a>plt.hist(pop_data.Y[pop_data.Y <span class="op">&gt;</span> <span class="dv">0</span>], bins <span class="op">=</span> <span class="st">&quot;fd&quot;</span>, density <span class="op">=</span> <span class="va">False</span>, alpha <span class="op">=</span> <span class="fl">0.6</span>, color <span class="op">=</span> <span class="st">&quot;steelblue&quot;</span>, edgecolor <span class="op">=</span> <span class="st">&#39;white&#39;</span>)</span>
+<span id="cb7-116"><a href="#cb7-116" aria-hidden="true" tabindex="-1"></a>plt.title(<span class="ss">f&quot;Distribution of Improper Payments&quot;</span>)</span>
+<span id="cb7-117"><a href="#cb7-117" aria-hidden="true" tabindex="-1"></a>plt.xlabel(<span class="st">&quot;Improper Payment Amount ($)&quot;</span>)</span>
+<span id="cb7-118"><a href="#cb7-118" aria-hidden="true" tabindex="-1"></a>plt.ylabel(<span class="st">&quot;Frequency&quot;</span>)</span>
+<span id="cb7-119"><a href="#cb7-119" aria-hidden="true" tabindex="-1"></a>plt.grid(<span class="va">True</span>, alpha <span class="op">=</span> <span class="fl">0.2</span>)</span>
+<span id="cb7-120"><a href="#cb7-120" aria-hidden="true" tabindex="-1"></a>plt.show()</span>
+<span id="cb7-121"><a href="#cb7-121" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb7-122"><a href="#cb7-122" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-123"><a href="#cb7-123" aria-hidden="true" tabindex="-1"></a><span class="fu"># Session Information {#sec-sessioninfo}</span></span>
+<span id="cb7-124"><a href="#cb7-124" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-125"><a href="#cb7-125" aria-hidden="true" tabindex="-1"></a>All of the files needed to reproduce these results can be downloaded from the Git repository <span class="ot">&lt;https://github.com/wkingc/improper-payments-dgp-py&gt;</span>.</span>
+<span id="cb7-126"><a href="#cb7-126" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-129"><a href="#cb7-129" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
+<span id="cb7-130"><a href="#cb7-130" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: py-info</span></span>
+<span id="cb7-131"><a href="#cb7-131" aria-hidden="true" tabindex="-1"></a><span class="co">#| eval: true</span></span>
+<span id="cb7-132"><a href="#cb7-132" aria-hidden="true" tabindex="-1"></a><span class="co">#| output: true</span></span>
+<span id="cb7-133"><a href="#cb7-133" aria-hidden="true" tabindex="-1"></a><span class="co">#| echo: false</span></span>
+<span id="cb7-134"><a href="#cb7-134" aria-hidden="true" tabindex="-1"></a><span class="co">#| warning: false</span></span>
+<span id="cb7-135"><a href="#cb7-135" aria-hidden="true" tabindex="-1"></a><span class="co">#| message: false</span></span>
+<span id="cb7-136"><a href="#cb7-136" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-137"><a href="#cb7-137" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> session_info</span>
+<span id="cb7-138"><a href="#cb7-138" aria-hidden="true" tabindex="-1"></a>session_info.show()</span>
+<span id="cb7-139"><a href="#cb7-139" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb7-140"><a href="#cb7-140" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-141"><a href="#cb7-141" aria-hidden="true" tabindex="-1"></a><span class="fu"># References</span></span>
 </code></pre></div><button title="Copy to Clipboard" class="code-copy-button" data-in-quarto-modal><i class="bi"></i></button></div>
 </div></div></div></div></div>
 </div> <!-- /content -->
