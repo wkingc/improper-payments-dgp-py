@@ -2359,7 +2359,7 @@ window.Quarto = {
 </section>
 <section id="example" class="level1">
 <h1>Example</h1>
-<p>Suppose we want to generate 100,000 payments with maximum payment amount of $1,000, mean payment amount of $100, and a coefficient of variation of 0.5. The percentage of each payment that is improper is between 40% and 60% of the payment amount, and the probability that each payment is improper is 10%.</p>
+<p>Suppose we want to generate 100,000 payments with maximum payment amount of $1,000, mean payment amount of $100, and a standard devation of 1/2 the payment amount (e.g., coefficient of variation equal to 0.5). The percentage of each payment that is improper is between 40% and 60% of the payment amount, and the probability that each payment is improper is 10%.</p>
 <p>We can accomplish this in Python using the <strong><code>improper_payments_dgp</code></strong> function. It accepts the following arguments:</p>
 <ul>
 <li><strong><code>mean_target</code></strong>: Target mean of the truncated gamma distribution.</li>
@@ -2576,7 +2576,7 @@ truncated_gamma_rvs 0.1.4
 Python 3.14.2 (main, Dec  5 2025, 16:49:16) [Clang 17.0.0 (clang-1700.6.3.2)]
 macOS-26.2-arm64-arm-64bit-Mach-O
 -----
-Session information updated at 2026-02-01 08:40</code></pre>
+Session information updated at 2026-02-01 08:49</code></pre>
 </div>
 </div>
 </section>
@@ -3083,7 +3083,7 @@ Bain, Lee J, and Max Engelhardt. 1992. <em><span class="nocase">Introduction to 
 <span id="cb7-37"><a href="#cb7-37" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb7-38"><a href="#cb7-38" aria-hidden="true" tabindex="-1"></a><span class="fu"># Example</span></span>
 <span id="cb7-39"><a href="#cb7-39" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-40"><a href="#cb7-40" aria-hidden="true" tabindex="-1"></a>Suppose we want to generate 100,000 payments with maximum payment amount of $1,000, mean payment amount of $100, and a coefficient of variation of 0.5.  The percentage of each payment that is improper is between 40<span class="dv">&amp;#37;</span> and 60<span class="dv">&amp;#37;</span> of the payment amount, and the probability that each payment is improper is 10<span class="dv">&amp;#37;</span>.</span>
+<span id="cb7-40"><a href="#cb7-40" aria-hidden="true" tabindex="-1"></a>Suppose we want to generate 100,000 payments with maximum payment amount of $1,000, mean payment amount of $100, and a standard devation of 1/2 the payment amount (e.g., coefficient of variation equal to 0.5).  The percentage of each payment that is improper is between 40<span class="dv">&amp;#37;</span> and 60<span class="dv">&amp;#37;</span> of the payment amount, and the probability that each payment is improper is 10<span class="dv">&amp;#37;</span>.</span>
 <span id="cb7-41"><a href="#cb7-41" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb7-42"><a href="#cb7-42" aria-hidden="true" tabindex="-1"></a>We can accomplish this in Python using the **`improper_payments_dgp`** function.  It accepts the following arguments:</span>
 <span id="cb7-43"><a href="#cb7-43" aria-hidden="true" tabindex="-1"></a></span>

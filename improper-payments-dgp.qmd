@@ -37,7 +37,7 @@ Improper payments are stright forward.  Let $Y_i = B_iX_iZ_i$ where $B_i \sim Un
 
 # Example
 
-Suppose we want to generate 100,000 payments with maximum payment amount of $1,000, mean payment amount of $100, and a coefficient of variation of 0.5.  The percentage of each payment that is improper is between 40&#37; and 60&#37; of the payment amount, and the probability that each payment is improper is 10&#37;.
+Suppose we want to generate 100,000 payments with maximum payment amount of $1,000, mean payment amount of $100, and a standard devation of 1/2 the payment amount (e.g., coefficient of variation equal to 0.5).  The percentage of each payment that is improper is between 40&#37; and 60&#37; of the payment amount, and the probability that each payment is improper is 10&#37;.
 
 We can accomplish this in Python using the **`improper_payments_dgp`** function.  It accepts the following arguments:
 
