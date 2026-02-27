@@ -33,7 +33,7 @@ The proposed data generating process for improper payments involves a mixture di
 
 Payments are generated using a truncated gamma distribution $X_i \sim \Gamma_T(\alpha, \theta)$ (see <https://www.kingcopeland.com/truncated-gamma-rvs-py/> for details).  Practically speaking, unlike the gamma distribution, the first and second moments of the truncated gamma distribution don't have closed-form solutions, so the values of $\alpha$ and $\theta$ are solved for numerically for a given $E[X]$ and $CV[X] = \frac{SD[X]}{E[X]}$.
 
-Improper payments are stright forward.  Let $Y_i = B_iX_iZ_i$ where $B_i \sim Unif(a \in [0, 1], b \ge a \in [0, 1])$ is the percentage of each payment that is improper, and $Z_{i} \sim Bin(1,p)$, where $1$ is the number of trials and $p$ is the probability of observing an improper payment [@bain1992introduction, pp. 92-95, 109-110].
+Improper payments are straightforward.  Let $Y_i = B_iX_iZ_i$ where $B_i \sim Unif(a \in [0, 1], b \ge a \in [0, 1])$ is the percentage of each payment that is improper, and $Z_{i} \sim Bin(1,p)$, where $1$ is the number of trials and $p$ is the probability of observing an improper payment [@bain1992introduction, pp. 92-95, 109-110].
 
 # Example
 
